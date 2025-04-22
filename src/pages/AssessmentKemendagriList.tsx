@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, FileText, RefreshCw, Trash2 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { getHealthCategory } from "@/models/health-categories";
+import { getHealthCategorykemendagri } from "@/models/health-categories";
 import { supabase } from "@/integrations/supabase/client";
 import { Assessment } from "@/models/types";
 import { useToast } from "@/components/ui/use-toast";
@@ -195,7 +195,7 @@ const AssessmentKemendagriList = () => {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {assessments.map((assessment) => {
-            const healthCategory = getHealthCategory(assessment.totalScore);
+            const healthCategory = getHealthCategorykemendagri(assessment.totalScore);
                   
             return (
               <div 

@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { kemendagriIndicators } from "@/models/kemendagri-indicators";
-import { getHealthCategory } from "@/models/health-categories";
+import { getHealthCategorykemendagri } from "@/models/health-categories";
 import { 
   BarChart, 
   Bar, 
@@ -256,7 +256,7 @@ const AssessmentKemendagriDetail = () => {
     );
   }
   
-  const healthCategory = getHealthCategory(assessment.totalScore);
+  const healthCategory = getHealthCategorykemendagri(assessment.totalScore);
   
   return (
     <DashboardLayout title="Detail Penilaian">

@@ -8,7 +8,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { 
   Select, 
   SelectContent, 
@@ -19,7 +19,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Download, Printer, RefreshCw } from "lucide-react";
-import { getHealthCategory } from "@/models/health-categories";
+import { getHealthCategorykemendagri } from "@/models/health-categories";
 import { supabase } from "@/integrations/supabase/client";
 import { Assessment } from "@/models/types";
 import { useToast } from "@/components/ui/use-toast";
@@ -172,11 +172,11 @@ const ReportsKemendagri = () => {
   const yearlyScoreData = assessments.map(assessment => ({
     year: assessment.year,
     score: assessment.totalScore,
-    category: getHealthCategory(assessment.totalScore).category
+    category: getHealthCategorykemendagri(assessment.totalScore).category
   }));
   
   const healthCategories = assessments.reduce<Record<string, number>>((acc, assessment) => {
-    const category = getHealthCategory(assessment.totalScore).category;
+    const category = getHealthCategorykemendagri(assessment.totalScore).category;
     acc[category] = (acc[category] || 0) + 1;
     return acc;
   }, {});
@@ -257,7 +257,6 @@ const ReportsKemendagri = () => {
   return (
     <DashboardLayout title="Laporan Penilaian KEMENDAGRI">
       <div className="flex flex-col gap-6">
-        {/* Existing header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Laporan Penilaian KEMENDAGRI</h1>
           <div className="flex gap-2">
@@ -280,8 +279,8 @@ const ReportsKemendagri = () => {
             </Button>
           </div>
         </div>
-        
-        {/* Filter card - existing */}
+
+        {/* Filter Card */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Filter</CardTitle>
@@ -311,235 +310,145 @@ const ReportsKemendagri = () => {
           </CardContent>
         </Card>
 
-        {/* Summary cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Penilaian</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{assessments.length}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Rata-rata Skor</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {assessments.length > 0 
-                  ? (assessments.reduce((sum, a) => sum + a.totalScore, 0) / assessments.length).toFixed(2)
-                  : "-"}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Skor Tertinggi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {assessments.length > 0 
-                  ? Math.max(...assessments.map(a => a.totalScore)).toFixed(2)
-                  : "-"}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Skor Terendah</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {assessments.length > 0 
-                  ? Math.min(...assessments.map(a => a.totalScore)).toFixed(2)
-                  : "-"}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Trend Chart */}
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Tren Skor Tahunan</CardTitle>
-              <CardDescription>
-                Perkembangan skor penilaian KEMENDAGRI per tahun
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={yearlyScoreData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis domain={[0, 5]} />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#8884d8"
-                    activeDot={{ r: 8 }}
-                    name="Skor Rata-rata"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Aspect Comparison Chart */}
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Perkembangan Aspek Penilaian</CardTitle>
-              <CardDescription>
-                Skor per aspek dari tahun ke tahun
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={yearlyAspectScores}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis domain={[0, 5]} />
-                  <Tooltip />
-                  <Legend />
-                  {Object.keys(aspectData).map((category, index) => (
-                    <Line 
-                      key={category}
-                      type="monotone" 
-                      dataKey={category} 
-                      name={`Aspek ${category}`} 
-                      stroke={COLORS[index % COLORS.length]} 
-                      activeDot={{ r: 8 }} 
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Category Distribution Chart */}
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Distribusi Kategori Penilaian</CardTitle>
-              <CardDescription>
-                Jumlah penilaian per kategori kesehatan
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <div className="flex flex-col md:flex-row items-center justify-center">
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={healthCategoryData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      labelLine={true}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {healthCategoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Latest Assessment Radar Chart */}
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Profil Kinerja Terkini</CardTitle>
-              <CardDescription>
-                Skor per aspek penilaian pada tahun terbaru
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart 
-                  cx="50%" 
-                  cy="50%" 
-                  outerRadius="80%" 
-                  data={Object.entries(aspectData).map(([category]) => ({
-                    aspect: category,
-                    score: yearlyAspectScores[yearlyAspectScores.length - 1]?.[category] || 0
-                  }))}
-                >
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="aspect" />
-                  <PolarRadiusAxis domain={[0, 5]} />
-                  <Radar
-                    name="Skor Aspek"
-                    dataKey="score"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    fillOpacity={0.6}
-                  />
-                  <Tooltip />
-                  <Legend />
-                </RadarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Data Table */}
+        {/* Skor Total Per Tahun */}
         <Card>
           <CardHeader>
-            <CardTitle>Data Penilaian</CardTitle>
-            <CardDescription>
-              Daftar penilaian KEMENDAGRI dari tahun ke tahun
-            </CardDescription>
+            <CardTitle>Skor Total Per Tahun</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={yearlyScoreData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis domain={[0, 5]} />
+                <Tooltip
+                  formatter={(value: number) => [value.toFixed(2), "Skor"]}
+                  labelFormatter={(label) => `Tahun ${label}`}
+                />
+                <Legend />
+                <Bar dataKey="score" name="Skor Total" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Distribusi Kategori Kesehatan */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Distribusi Kategori Kesehatan</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row items-center justify-center">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={healthCategoryData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    labelLine={true}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {healthCategoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: number, name: string) => [value, name]} 
+                    labelFormatter={() => "Jumlah"} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              
+              <div className="mt-4 md:mt-0 md:ml-4">
+                <h3 className="text-md font-medium mb-2">Legenda</h3>
+                <ul className="space-y-1">
+                  {healthCategoryData.map((entry, index) => (
+                    <li key={index} className="flex items-center">
+                      <div 
+                        className="w-4 h-4 mr-2" 
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      ></div>
+                      <span>{entry.name}: {entry.value} penilaian</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Skor Aspek Per Tahun */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Skor Aspek Per Tahun</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={yearlyAspectScores}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis domain={[0, 5]} />
+                <Tooltip 
+                  formatter={(value: number, name: string) => [value.toFixed(2), `Aspek ${name}`]}
+                  labelFormatter={(label) => `Tahun ${label}`}
+                />
+                <Legend />
+                {Object.keys(aspectData).map((category, index) => (
+                  <Line 
+                    key={category}
+                    type="monotone" 
+                    dataKey={category} 
+                    name={`Aspek ${category}`} 
+                    stroke={COLORS[index % COLORS.length]} 
+                    activeDot={{ r: 8 }} 
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Tabel Skor Per Tahun */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tabel Skor Per Tahun</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
+              <table className="w-full min-w-[640px]">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-2">Tahun</th>
-                    <th className="text-left p-2">Tanggal</th>
-                    <th className="text-right p-2">Skor</th>
-                    <th className="text-left p-2">Kategori</th>
+                    <th className="py-2 px-4 text-left">Tahun</th>
+                    <th className="py-2 px-4 text-left">Skor Total</th>
+                    <th className="py-2 px-4 text-left">Kategori</th>
+                    {Object.keys(aspectData).map(category => (
+                      <th key={category} className="py-2 px-4 text-left">Aspek {category}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {assessments.length > 0 ? (
-                    assessments.map((assessment) => {
-                      const healthCategory = getHealthCategory(assessment.totalScore);
-                      return (
-                        <tr key={assessment.id} className="border-b hover:bg-muted/50 cursor-pointer">
-                          <td className="p-2">{assessment.year}</td>
-                          <td className="p-2">{new Date(assessment.date).toLocaleDateString("id-ID")}</td>
-                          <td className="p-2 text-right font-medium">{assessment.totalScore.toFixed(2)}</td>
-                          <td className="p-2">
-                            <span className={`${healthCategory.color} text-white text-xs px-2 py-1 rounded-full`}>
-                              {healthCategory.category}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="p-4 text-center text-muted-foreground">
-                        Tidak ada data yang sesuai dengan filter
-                      </td>
-                    </tr>
-                  )}
+                  {yearlyAspectScores.map((yearData, index) => {
+                    const assessment = assessments[index];
+                    const healthCategory = getHealthCategorykemendagri(assessment.totalScore);
+                    
+                    return (
+                      <tr key={yearData.year} className="border-b last:border-0">
+                        <td className="py-2 px-4">{yearData.year}</td>
+                        <td className="py-2 px-4">{assessment.totalScore.toFixed(2)}</td>
+                        <td className="py-2 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-white text-xs ${healthCategory.color}`}>
+                            {healthCategory.category}
+                          </span>
+                        </td>
+                        {Object.keys(aspectData).map(category => (
+                          <td key={category} className="py-2 px-4">{yearData[category].toFixed(2)}</td>
+                        ))}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
